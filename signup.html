@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Hearthly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-light: #FFFBF5; --bg-dark: #121212; --text-light: #1a1a1a; --text-dark: #e5e5e5;
+            --card-light: white; --card-dark: rgba(255, 255, 255, 0.05); --border-light: #e5e7eb;
+            --border-dark: rgba(255, 255, 255, 0.1); --gradient-1: #fbc2eb; --gradient-2: #a6c1ee;
+        }
+        html.dark { color-scheme: dark; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-light); background-image: linear-gradient(45deg, var(--gradient-1), var(--gradient-2)); color: var(--text-light); }
+        .dark body { background-color: var(--bg-dark); background-image: linear-gradient(45deg, rgba(251, 194, 235, 0.1), rgba(166, 193, 238, 0.1)); color: var(--text-dark); }
+        .hearthly-gradient-text { background: linear-gradient(45deg, var(--gradient-1), var(--gradient-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hearthly-logo-glow { filter: drop-shadow(0 0 10px rgba(251, 194, 235, 0.5)); }
+        .auth-card { background-color: var(--card-light); border: 1px solid var(--border-light); }
+        .dark .auth-card { background-color: var(--card-dark); backdrop-filter: blur(20px); border: 1px solid var(--border-dark); }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        <a href="hearthly_landing_page.html" class="flex items-center space-x-2 text-3xl font-extrabold hearthly-gradient-text mb-8">
+            <svg class="w-10 h-10 hearthly-logo-glow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <span>hearthly</span>
+        </a>
+        <div class="auth-card w-full max-w-md p-8 rounded-2xl shadow-2xl">
+            <h2 class="text-3xl font-bold text-center mb-2">Create your account</h2>
+            <p class="text-center text-gray-500 dark:text-gray-400 mb-8">Join the vibe! ✨</p>
+            <div id="message-box" class="hidden p-3 mb-4 text-sm rounded-lg text-center"></div>
+            <form id="signup-form" class="space-y-4">
+                <div><label for="full-name" class="text-sm font-semibold">Full Name</label><input id="full-name" name="full-name" type="text" required class="mt-1 w-full bg-gray-100 dark:bg-white/10 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-400"></div>
+                <div><label for="username" class="text-sm font-semibold">Username</label><input id="username" name="username" type="text" required class="mt-1 w-full bg-gray-100 dark:bg-white/10 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-400"></div>
+                <div><label for="email" class="text-sm font-semibold">Email</label><input id="email" name="email" type="email" required class="mt-1 w-full bg-gray-100 dark:bg-white/10 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-400"></div>
+                <div><label for="password" class="text-sm font-semibold">Password</label><input id="password" name="password" type="password" required class="mt-1 w-full bg-gray-100 dark:bg-white/10 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-400"></div>
+                <div class="pt-4"><button type="submit" class="w-full text-lg font-bold text-white bg-gradient-to-r from-pink-500 to-orange-400 px-8 py-3 rounded-full shadow-lg hover:opacity-90 transition-opacity transform hover:scale-105">Create Account</button></div>
+            </form>
+            <p class="text-center text-sm mt-8">Already have an account? <a href="hearthly_login_page_redesigned.html" class="font-semibold hearthly-gradient-text hover:opacity-80">Log In</a></p>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        const firebaseConfig = { apiKey: "AIzaSyBBxGKrCB71bpBtyNXFX5zwIhn3PgxhCNs", authDomain: "hearthly-ee439.firebaseapp.com", projectId: "hearthly-ee439", storageBucket: "hearthly-ee439.appspot.com", messagingSenderId: "443591103966", appId: "1:443591103966:web:aac738ab278ed34b1e794f", measurementId: "G-7HPTKEKV4D" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = firebaseConfig.projectId;
+        const signupForm = document.getElementById('signup-form');
+        const messageBox = document.getElementById('message-box');
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('full-name').value;
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                const userDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/profile/${user.uid}`);
+                await setDoc(userDocRef, { uid: user.uid, fullName, username, email, createdAt: new Date(), bio: "Welcome to my Hearthly! ✨", status: { emoji: "👋", text: "Just joined!" }, bannerClass: "bg-gradient-to-br from-pink-300 to-blue-400", following: [], followers: [] });
+                showMessage("Account created! Redirecting...", false);
+                setTimeout(() => { window.location.href = "hearthly_dashboard.html"; }, 1500);
+            } catch (error) {
+                console.error("Sign up error:", error);
+                showMessage(error.message, true);
+            }
+        });
+        function showMessage(message, isError = false) { messageBox.textContent = message; messageBox.className = `p-3 mb-4 text-sm rounded-lg text-center ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`; }
+    </script>
+</body>
+</html>
