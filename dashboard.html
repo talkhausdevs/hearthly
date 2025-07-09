@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hearthly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        :root {
+            --bg-light: #FFFBF5; --bg-dark: #121212; --text-light: #1a1a1a; --text-dark: #e5e5e5;
+            --card-light: white; --card-dark: rgba(255, 255, 255, 0.05); --border-light: #e5e7eb;
+            --border-dark: rgba(255, 255, 255, 0.1); --gradient-1: #fbc2eb; --gradient-2: #a6c1ee;
+        }
+        html.dark { color-scheme: dark; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-light); color: var(--text-light); transition: background-color 0.3s ease, color 0.3s ease; }
+        .dark body { background-color: var(--bg-dark); color: var(--text-dark); }
+        .hearthly-gradient-text { background: linear-gradient(45deg, var(--gradient-1), var(--gradient-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hearthly-logo-glow { filter: drop-shadow(0 0 10px rgba(251, 194, 235, 0.5)); }
+        .post-card { background-color: var(--card-light); border: 1px solid var(--border-light); position: relative; transition: all 0.3s ease; }
+        .dark .post-card { background-color: var(--card-dark); backdrop-filter: blur(10px); border: 1px solid var(--border-dark); }
+        .heart-btn.liked svg { animation: bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: scale(1); }
+        @keyframes bounce-in { 0% { transform: scale(0.8); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .sparkle { position: absolute; width: 8px; height: 8px; background: #fbc2eb; border-radius: 50%; pointer-events: none; animation: sparkle-out 0.5s ease-out forwards; }
+        @keyframes sparkle-out { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }
+        .comment-section { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out, margin-top 0.5s ease-in-out; }
+        .comment-section.open { max-height: 500px; margin-top: 1rem; }
+        .modal-overlay { transition: opacity 0.3s ease; }
+        .modal-panel { transition: transform 0.3s ease-in-out; }
+        .profile-pfp-frame { animation: cycle-hue 5s infinite linear; }
+        @keyframes cycle-hue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="app-container" class="min-h-screen">
+        <!-- All app HTML is here -->
+    </div>
+    <div id="loading-screen" class="min-h-screen flex items-center justify-center">
+        <!-- Loading spinner HTML -->
+    </div>
+    <script type="module">
+        // All the JavaScript logic for the dashboard, modals, and Firebase is here.
+    </script>
+</body>
+</html>
