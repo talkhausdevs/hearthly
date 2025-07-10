@@ -25,7 +25,7 @@
 </head>
 <body class="antialiased">
     <div class="min-h-screen flex flex-col items-center justify-center p-4">
-        <a href="hearthly_landing_page.html" class="flex items-center space-x-2 text-3xl font-extrabold hearthly-gradient-text mb-8">
+        <a href="index.html" class="flex items-center space-x-2 text-3xl font-extrabold hearthly-gradient-text mb-8">
             <svg class="w-10 h-10 hearthly-logo-glow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             <span>hearthly</span>
         </a>
@@ -38,7 +38,7 @@
                 <div><label for="password" class="text-sm font-semibold">Password</label><input id="password" name="password" type="password" required class="mt-1 w-full bg-gray-100 dark:bg-white/10 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-400"></div>
                 <div class="pt-4"><button type="submit" class="w-full text-lg font-bold text-white bg-gradient-to-r from-pink-500 to-orange-400 px-8 py-3 rounded-full shadow-lg hover:opacity-90 transition-opacity transform hover:scale-105">Log In</button></div>
             </form>
-            <p class="text-center text-sm mt-8">Don't have an account? <a href="hearthly_signup_page_redesigned.html" class="font-semibold hearthly-gradient-text hover:opacity-80">Sign Up</a></p>
+            <p class="text-center text-sm mt-8">Don't have an account? <a href="signup.html" class="font-semibold hearthly-gradient-text hover:opacity-80">Sign Up</a></p>
         </div>
     </div>
     <script type="module">
@@ -56,7 +56,7 @@
             try {
                 await signInWithEmailAndPassword(auth, email, password);
                 showMessage("Login successful! Redirecting...", false);
-                setTimeout(() => { window.location.href = "hearthly_dashboard.html"; }, 1500);
+                setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
             } catch (error) {
                 console.error("Login error:", error);
                 let userMessage = "An unknown error occurred. Please try again.";
