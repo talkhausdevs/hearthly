@@ -1,70 +1,29 @@
 <!DOCTYPE html>
-<html lang="en" class=""> <!-- Add 'dark' class here to enable dark mode by default -->
+<html lang="en" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hearthly - Your Vibe, Your People</title>
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
     <style>
         :root {
-            --bg-light: #FFFBF5;
-            --bg-dark: #121212;
-            --text-light: #1a1a1a;
-            --text-dark: #e5e5e5;
-            --card-light: white;
-            --card-dark: rgba(255, 255, 255, 0.05);
-            --border-light: #e5e7eb;
-            --border-dark: rgba(255, 255, 255, 0.1);
-            --gradient-1: #fbc2eb; /* candy pink */
-            --gradient-2: #a6c1ee; /* baby blue */
-            --peach: #ffecd2;
-            --lilac: #d1c4e9;
+            --bg-light: #FFFBF5; --bg-dark: #121212; --text-light: #1a1a1a; --text-dark: #e5e5e5;
+            --card-light: white; --card-dark: rgba(255, 255, 255, 0.05); --border-light: #e5e7eb;
+            --border-dark: rgba(255, 255, 255, 0.1); --gradient-1: #fbc2eb; --gradient-2: #a6c1ee;
         }
-
         html.dark { color-scheme: dark; }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-light);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .dark body {
-            background-color: var(--bg-dark);
-            background-image: linear-gradient(45deg, rgba(251, 194, 235, 0.1), rgba(166, 193, 238, 0.1));
-            color: var(--text-dark);
-        }
-
-        .hearthly-gradient-text {
-            background: linear-gradient(45deg, var(--gradient-1), var(--gradient-2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .hearthly-logo-glow {
-            filter: drop-shadow(0 0 10px rgba(251, 194, 235, 0.5));
-        }
-        .bubbly-heading {
-            font-weight: 900;
-            font-size: 4rem;
-        }
-        @media (min-width: 768px) {
-            .bubbly-heading {
-                font-size: 6rem;
-            }
-        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-light); color: var(--text-light); transition: background-color 0.3s ease, color 0.3s ease; }
+        .dark body { background-color: var(--bg-dark); color: var(--text-dark); }
+        .hearthly-gradient-text { background: linear-gradient(45deg, var(--gradient-1), var(--gradient-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hearthly-logo-glow { filter: drop-shadow(0 0 10px rgba(251, 194, 235, 0.5)); }
+        .bubbly-heading { font-weight: 900; font-size: 4rem; }
+        @media (min-width: 768px) { .bubbly-heading { font-size: 6rem; } }
     </style>
 </head>
 <body class="antialiased">
-
-    <!-- Header -->
     <header class="bg-white/80 dark:bg-black/50 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200 dark:border-white/10">
         <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
@@ -73,8 +32,8 @@
                     <span>hearthly</span>
                 </a>
                 <div class="flex items-center space-x-4">
-                    <a href="login.html" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:hearthly-gradient-text">Log In</a>
-                    <a href="signup.html" class="text-sm font-semibold text-white bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-2.5 rounded-full shadow-lg hover:opacity-90 transition-opacity">Sign Up</a>
+                    <a href="login.html" id="login-btn" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:hearthly-gradient-text">Log In</a>
+                    <a href="signup.html" id="signup-btn" class="text-sm font-semibold text-white bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-2.5 rounded-full shadow-lg hover:opacity-90 transition-opacity">Sign Up</a>
                     <button id="dark-mode-toggle" class="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-white/10 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-colors">
                         <svg class="w-5 h-5 hidden dark:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.95-4.243l-1.59-1.59M3.75 12H6m.386-6.364l1.591 1.591M12 6.75A5.25 5.25 0 006.75 12a5.25 5.25 0 005.25 5.25a5.25 5.25 0 005.25-5.25A5.25 5.25 0 0012 6.75z" /></svg>
                         <svg class="w-5 h-5 dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
@@ -94,7 +53,7 @@
                     Hearthly is the new spot to connect with your crew, discover communities, and just be yourself. No pressure, just good vibes. ✨
                 </p>
                 <div class="mt-10">
-                    <a href="signup.html" class="text-lg font-bold text-white bg-gradient-to-r from-pink-500 to-orange-400 px-8 py-4 rounded-full shadow-2xl shadow-pink-500/20 hover:opacity-90 transition-all duration-300 transform hover:scale-105">
+                    <a href="signup.html" id="join-btn" class="text-lg font-bold text-white bg-gradient-to-r from-pink-500 to-orange-400 px-8 py-4 rounded-full shadow-2xl shadow-pink-500/20 hover:opacity-90 transition-all duration-300 transform hover:scale-105">
                         Join the Vibe
                     </a>
                 </div>
@@ -126,6 +85,9 @@
             });
         };
         setupDarkMode();
+        document.getElementById('login-btn').addEventListener('click', (e) => { e.preventDefault(); window.location.assign('login.html'); });
+        document.getElementById('signup-btn').addEventListener('click', (e) => { e.preventDefault(); window.location.assign('signup.html'); });
+        document.getElementById('join-btn').addEventListener('click', (e) => { e.preventDefault(); window.location.assign('signup.html'); });
     </script>
 </body>
 </html>
