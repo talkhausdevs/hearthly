@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Hearthly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-light: #FFFBF5; --bg-dark: #121212; --text-light: #1a1a1a; --text-dark: #e5e5e5;
+            --card-light: white; --card-dark: rgba(255, 255, 255, 0.05); --border-light: #e5e7eb;
+            --border-dark: rgba(255, 255, 255, 0.1); --gradient-1: #fbc2eb; --gradient-2: #a6c1ee;
+        }
+        html.dark { color-scheme: dark; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-light); color: var(--text-light); }
+        .dark body { background-color: var(--bg-dark); color: var(--text-dark); }
+        .hearthly-gradient-text { background: linear-gradient(45deg, var(--gradient-1), var(--gradient-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hearthly-logo-glow { filter: drop-shadow(0 0 10px rgba(251, 194, 235, 0.5)); }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="app-content" class="min-h-screen hidden">
+        <!-- Header -->
+        <header class="bg-white/80 dark:bg-black/50 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200 dark:border-white/10">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <a href="dashboard.html" class="flex items-center space-x-2 text-2xl font-extrabold hearthly-gradient-text">
+                        <svg class="w-8 h-8 hearthly-logo-glow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <span>hearthly</span>
+                    </a>
+                     <a href="dashboard.html" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:hearthly-gradient-text">&larr; Back to Dashboard</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto max-w-2xl p-4 sm:px-6 lg:px-8 mt-8">
+            <h1 class="text-3xl font-bold mb-6">Notifications</h1>
+            <div id="notifications-feed" class="space-y-4">
+                <!-- Notifications will be injected here -->
+                <p class="text-center text-gray-500">Loading notifications...</p>
+            </div>
+        </main>
+    </div>
+
+     <div id="loading-screen" class="min-h-screen flex items-center justify-center">
+        <div class="text-center">
+            <svg id="loading-spinner" class="w-12 h-12 text-pink-500 mx-auto animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p id="loading-message" class="mt-4 text-lg font-semibold text-gray-600 dark:text-gray-300">Connecting...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBBxGKrCB71bpBtyNXFX5zwIhn3PgxhCNs", authDomain: "hearthly-ee439.firebaseapp.com", projectId: "hearthly-ee439", storageBucket: "hearthly-ee439.appspot.com", messagingSenderId: "443591103966", appId: "1:443591103966:web:aac738ab278ed34b1e794f", measurementId: "G-7HPTKEKV4D" };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = firebaseConfig.projectId;
+
+        const appContent = document.getElementById('app-content');
+        const loadingScreen = document.getElementById('loading-screen');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const loadingMessage = document.getElementById('loading-message');
+        const notificationsFeed = document.getElementById('notifications-feed');
+
+        let unsubscribeNotifications = null;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loadingScreen.style.display = 'none';
+                appContent.classList.remove('hidden');
+                listenForNotifications(user.uid);
+            } else {
+                showError('You must be logged in to view notifications. Please <a href="login.html" class="font-bold underline">log in</a>.');
+            }
+        });
+
+        function showError(message) {
+            loadingSpinner.style.display = 'none';
+            loadingMessage.innerHTML = message;
+        }
+
+        function listenForNotifications(userId) {
+            if (unsubscribeNotifications) unsubscribeNotifications();
+
+            const notificationsRef = collection(db, `artifacts/${appId}/users/${userId}/notifications`);
+            const q = query(notificationsRef, orderBy("timestamp", "desc"));
+
+            unsubscribeNotifications = onSnapshot(q, (snapshot) => {
+                notificationsFeed.innerHTML = '';
+                if (snapshot.empty) {
+                    notificationsFeed.innerHTML = '<p class="text-center text-gray-500">You have no new notifications.</p>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const notification = doc.data();
+                    const notificationEl = document.createElement('div');
+                    notificationEl.className = 'p-4 bg-white dark:bg-black/50 rounded-xl border border-gray-200 dark:border-white/10 flex items-center space-x-4';
+                    
+                    let icon = '';
+                    let text = '';
+
+                    if (notification.type === 'like') {
+                        icon = '💖';
+                        text = `<span class="font-bold">${notification.fromUserName}</span> liked your post.`;
+                    } else if (notification.type === 'comment') {
+                        icon = '💬';
+                        text = `<span class="font-bold">${notification.fromUserName}</span> commented: "${notification.commentText}"`;
+                    }
+
+                    notificationEl.innerHTML = `
+                        <div class="text-2xl">${icon}</div>
+                        <div class="flex-1">
+                            <p class="text-gray-800 dark:text-gray-200">${text}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${new Date(notification.timestamp.seconds * 1000).toLocaleString()}</p>
+                        </div>
+                    `;
+                    notificationsFeed.appendChild(notificationEl);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
