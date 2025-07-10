@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - Hearthly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-light: #FFFBF5; --bg-dark: #121212; --text-light: #1a1a1a; --text-dark: #e5e5e5;
+            --card-light: white; --card-dark: rgba(255, 255, 255, 0.05); --border-light: #e5e7eb;
+            --border-dark: rgba(255, 255, 255, 0.1); --gradient-1: #fbc2eb; --gradient-2: #a6c1ee;
+        }
+        html.dark { color-scheme: dark; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-light); color: var(--text-light); }
+        .dark body { background-color: var(--bg-dark); color: var(--text-dark); }
+        .hearthly-gradient-text { background: linear-gradient(45deg, var(--gradient-1), var(--gradient-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hearthly-logo-glow { filter: drop-shadow(0 0 10px rgba(251, 194, 235, 0.5)); }
+        .auth-card { background-color: var(--card-light); border: 1px solid var(--border-light); }
+        .dark .auth-card { background-color: var(--card-dark); backdrop-filter: blur(20px); border: 1px solid var(--border-dark); }
+        .file-input-label { cursor: pointer; }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="app-content" class="min-h-screen hidden">
+        <!-- Header -->
+        <header class="bg-white/80 dark:bg-black/50 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200 dark:border-white/10">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <a href="dashboard.html" class="flex items-center space-x-2 text-2xl font-extrabold hearthly-gradient-text">
+                        <svg class="w-8 h-8 hearthly-logo-glow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <span>hearthly</span>
+                    </a>
+                    <a href="dashboard.html" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:hearthly-gradient-text">&larr; Back to Dashboard</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto max-w-2xl p-4 sm:px-6 lg:px-8 mt-8">
+            <h1 class="text-3xl font-bold mb-6">Customize Your Profile</h1>
+            <form id="edit-profile-form" class="space-y-6">
+                <!-- Profile Picture & Banner -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-semibold">Profile Picture</label>
+                        <div class="mt-2 flex items-center space-x-4">
+                            <img id="pfp-preview" class="w-20 h-20 rounded-full object-cover bg-gray-200">
+                            <label for="pfp-input" class="file-input-label px-4 py-2 text-sm font-semibold bg-gray-100 dark:bg-white/10 rounded-full hover:bg-gray-200 dark:hover:bg-white/20">Change</label>
+                            <input type="file" id="pfp-input" class="hidden" accept="image/*">
+                        </div>
+                    </div>
+                     <div>
+                        <label class="text-sm font-semibold">Header Banner</label>
+                        <div class="mt-2">
+                            <img id="banner-preview" class="w-full h-40 rounded-xl object-cover bg-gray-200">
+                            <label for="banner-input" class="file-input-label mt-2 inline-block px-4 py-2 text-sm font-semibold bg-gray-100 dark:bg-white/10 rounded-full hover:bg-gray-200 dark:hover:bg-white/20">Change Banner</label>
+                            <input type="file" id="banner-input" class="hidden" accept="image/*">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Fields -->
+                <div><label for="edit-fullname" class="text-sm font-semibold">Full Name</label><input id="edit-fullname" type="text" class="mt-1 w-full bg-gray-100 dark:bg-white/10 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-400"></div>
+                <div><label for="edit-username" class="text-sm font-semibold">Username</label><input id="edit-username" type="text" class="mt-1 w-full bg-gray-100 dark:bg-white/10 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-400"></div>
+                <div><label for="edit-bio" class="text-sm font-semibold">Bio</label><textarea id="edit-bio" rows="3" class="mt-1 w-full bg-gray-100 dark:bg-white/10 border-none rounded-lg px-4 py-2 focus:ring-2 focus:ring-pink-400"></textarea></div>
+                
+                <!-- Status -->
+                 <div>
+                    <label class="text-sm font-semibold">Status</label>
+                    <div class="flex space-x-2 mt-1">
+                        <input id="status-emoji-input" type="text" value="✨" class="w-16 text-2xl text-center bg-gray-100 dark:bg-white/10 rounded-lg border-none focus:ring-2 focus:ring-pink-400">
+                        <input id="status-text-input" type="text" placeholder="What's the mood?" class="w-full bg-gray-100 dark:bg-white/10 border-none rounded-lg px-4 py-2 focus:ring-2 focus:ring-pink-400">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex justify-end">
+                    <button type="submit" id="save-profile-btn" class="text-lg font-bold text-white bg-gradient-to-r from-pink-500 to-orange-400 px-8 py-3 rounded-full shadow-lg hover:opacity-90 transition-opacity">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
+    <div id="loading-screen" class="min-h-screen flex items-center justify-center">
+        <div class="text-center">
+            <svg id="loading-spinner" class="w-12 h-12 text-pink-500 mx-auto animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p id="loading-message" class="mt-4 text-lg font-semibold text-gray-600 dark:text-gray-300">Loading Your Profile...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBBxGKrCB71bpBtyNXFX5zwIhn3PgxhCNs", authDomain: "hearthly-ee439.firebaseapp.com", projectId: "hearthly-ee439", storageBucket: "hearthly-ee439.appspot.com", messagingSenderId: "443591103966", appId: "1:443591103966:web:aac738ab278ed34b1e794f", measurementId: "G-7HPTKEKV4D" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        const appId = firebaseConfig.projectId;
+
+        let currentUser = null;
+        let pfpFile = null;
+        let bannerFile = null;
+        
+        const pfpPreview = document.getElementById('pfp-preview');
+        const bannerPreview = document.getElementById('banner-preview');
+        const pfpInput = document.getElementById('pfp-input');
+        const bannerInput = document.getElementById('banner-input');
+        const editForm = document.getElementById('edit-profile-form');
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                loadProfileData();
+            } else {
+                // FIX: Show an error message instead of trying to redirect.
+                showError('You must be logged in to edit your profile. Please <a href="login.html" class="font-bold underline">log in</a>.');
+            }
+        });
+
+        function showError(message) {
+            document.getElementById('app-content').classList.add('hidden');
+            const loadingScreen = document.getElementById('loading-screen');
+            loadingScreen.style.display = 'flex';
+            document.getElementById('loading-spinner').style.display = 'none';
+            document.getElementById('loading-message').innerHTML = `<strong class="text-red-500">${message}</strong>`;
+        }
+
+        async function loadProfileData() {
+            const userDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/profile/${currentUser.uid}`);
+            const userSnap = await getDoc(userDocRef);
+
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                document.getElementById('edit-fullname').value = data.fullName || '';
+                document.getElementById('edit-username').value = data.username || '';
+                document.getElementById('edit-bio').value = data.bio || '';
+                document.getElementById('status-emoji-input').value = data.status?.emoji || '✨';
+                document.getElementById('status-text-input').value = data.status?.text || '';
+                pfpPreview.src = data.pfpURL || `https://placehold.co/80x80/fbc2eb/a6c1ee?text=${data.fullName.charAt(0)}`;
+                bannerPreview.src = data.bannerURL || 'https://placehold.co/600x160/a6c1ee/fbc2eb?text=Vibes';
+                document.getElementById('app-content').classList.remove('hidden');
+                document.getElementById('loading-screen').style.display = 'none';
+            }
+        }
+
+        pfpInput.addEventListener('change', (e) => {
+            pfpFile = e.target.files[0];
+            if (pfpFile) pfpPreview.src = URL.createObjectURL(pfpFile);
+        });
+
+        bannerInput.addEventListener('change', (e) => {
+            bannerFile = e.target.files[0];
+            if (bannerFile) bannerPreview.src = URL.createObjectURL(bannerFile);
+        });
+
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const saveBtn = document.getElementById('save-profile-btn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                let pfpURL = null;
+                let bannerURL = null;
+
+                if (pfpFile) {
+                    const pfpRef = ref(storage, `profile-pictures/${currentUser.uid}`);
+                    await uploadBytes(pfpRef, pfpFile);
+                    pfpURL = await getDownloadURL(pfpRef);
+                }
+
+                if (bannerFile) {
+                    const bannerRef = ref(storage, `banners/${currentUser.uid}`);
+                    await uploadBytes(bannerRef, bannerFile);
+                    bannerURL = await getDownloadURL(bannerRef);
+                }
+
+                const updates = {
+                    fullName: document.getElementById('edit-fullname').value,
+                    username: document.getElementById('edit-username').value,
+                    bio: document.getElementById('edit-bio').value,
+                    status: {
+                        emoji: document.getElementById('status-emoji-input').value,
+                        text: document.getElementById('status-text-input').value,
+                    }
+                };
+
+                if (pfpURL) updates.pfpURL = pfpURL;
+                if (bannerURL) updates.bannerURL = bannerURL;
+
+                const userDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/profile/${currentUser.uid}`);
+                await updateDoc(userDocRef, updates);
+
+                alert("Profile updated successfully!");
+                window.location.assign('dashboard.html');
+
+            } catch (error) {
+                console.error("Error updating profile:", error);
+                alert("Failed to update profile.");
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Changes';
+            }
+        });
+    </script>
+</body>
+</html>
