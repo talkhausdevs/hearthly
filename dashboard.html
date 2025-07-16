@@ -142,7 +142,7 @@
                         if (userSnap.exists()) {
                             currentUserProfile = userSnap.data();
                         } else {
-                            showError('Profile not found. Please <a href="login.html" class="font-bold underline">log in</a> again.');
+                            window.location.assign('login.html');
                             return;
                         }
                         displayUserData(currentUserProfile);
@@ -164,13 +164,15 @@
             createPostForm.addEventListener('submit', handlePostCreation);
             postFeed.addEventListener('click', handlePostInteraction);
             logoutButton.addEventListener('click', () => {
-                signOut(auth).catch(err => console.error("Logout error", err));
+                signOut(auth).then(() => {
+                    window.location.assign('index.html');
+                });
             });
         };
         
         initApp();
         
-        const handlePostCreation = async (e) => { e.preventDefault(); const content = postContentInput.value.trim(); if (content && currentUserProfile) { try { await addDoc(collection(db, `artifacts/${appId}/public/data/posts`), { content, authorId: currentUserProfile.uid, authorName: currentUserProfile.fullName, authorUsername: currentUserProfile.username, createdAt: new Date(), likes: 0, likers: [], commentCount: 0, isArchived: false, visibility: 'public' }); postContentInput.value = ''; await updateUserStreak(); } catch (error) { console.error("Error creating post: ", error); } } };
+        const handlePostCreation = async (e) => { e.preventDefault(); const content = postContentInput.value.trim(); if (content && currentUserProfile) { try { await addDoc(collection(db, `artifacts/${appId}/public/data/posts`), { content, authorId: currentUserProfile.uid, authorName: currentUserProfile.fullName, authorUsername: currentUserProfile.username, authorPfpURL: currentUserProfile.pfpURL || null, createdAt: new Date(), likes: 0, likers: [], commentCount: 0, isArchived: false, visibility: 'public' }); postContentInput.value = ''; await updateUserStreak(); } catch (error) { console.error("Error creating post: ", error); } } };
         const updateUserStreak = async () => { /* ... */ };
         const handlePostInteraction = (e) => { 
             const heartBtn = e.target.closest('.heart-btn');
@@ -187,15 +189,40 @@
             sidebarAvatar.src = profile.pfpURL || `https://placehold.co/64x64/fbc2eb/a6c1ee?text=${profile.fullName.charAt(0)}`;
             streakDisplay.innerHTML = `🔥 ${profile.streak || 0} Day Streak`;
         };
-        const listenForPosts = () => { if (unsubscribePosts) unsubscribePosts(); const q = query(collection(db, `artifacts/${appId}/public/data/posts`), where("isArchived", "==", false), where("visibility", "==", "public"), orderBy("createdAt", "desc")); unsubscribePosts = onSnapshot(q, (snapshot) => { postFeed.innerHTML = ''; if (snapshot.empty) { postFeed.innerHTML = '<div class="text-center p-8">No posts yet. Say something cool!</div>'; return; } const posts = []; snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() })); posts.forEach(post => { const el = document.createElement('div'); el.id = `post-${post.id}`; el.className = 'post-card rounded-2xl p-6'; const liked = currentUserProfile && post.likers && post.likers.includes(currentUserProfile.uid); 
         
-        let optionsMenu = '';
-        if (post.authorId === currentUserProfile.uid) {
-            optionsMenu = `<div class="relative"><button class="post-options-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg></button><div class="post-options-dropdown absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-1"><a href="#" class="delete-post-btn block px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" data-post-id="${post.id}">Delete Post</a></div></div>`;
-        }
-        
-        el.innerHTML = ` <div class="flex justify-between items-start"> <div class="flex items-center mb-4"> <img src="${post.authorPfpURL || `https://placehold.co/48x48/fbc2eb/a6c1ee?text=${post.authorName.charAt(0)}`}" class="w-12 h-12 rounded-full object-cover"> <div class="ml-4"> <p class="font-bold">${post.authorName}</p><p class="text-sm text-gray-500 dark:text-gray-400">@${post.authorUsername}</p></div> </div> ${optionsMenu} </div> <p class="mb-4">${post.content || ''}</p> <div class="flex items-center space-x-6 mt-4"> <button class="heart-btn relative flex items-center space-x-2 transition-colors ${liked ? 'text-pink-500' : 'text-gray-400 dark:text-gray-500 hover:text-pink-500'}" data-post-id="${post.id}"><svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg><span class="font-semibold text-sm">${post.likes || 0}</span></button></div>`; postFeed.appendChild(el); }); }); };
-        const createSparkles = (btn) => { for(let i = 0; i < 5; i++) { const sparkle = document.createElement('div'); sparkle.className = 'sparkle'; sparkle.style.left = `${Math.random() * 100 - 50}%`; sparkle.style.top = `${Math.random() * 100 - 50}%`; btn.appendChild(sparkle); setTimeout(() => sparkle.remove(), 500); } };
+        const listenForPosts = () => {
+            if (unsubscribePosts) unsubscribePosts();
+            const q = query(collection(db, `artifacts/${appId}/public/data/posts`), orderBy("createdAt", "desc"));
+            
+            unsubscribePosts = onSnapshot(q, (snapshot) => {
+                postFeed.innerHTML = '';
+                const posts = [];
+                snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
+
+                const visiblePosts = posts.filter(post => !post.isArchived && post.visibility === 'public');
+
+                if (visiblePosts.length === 0) {
+                    postFeed.innerHTML = '<div class="text-center p-8">No posts yet. Say something cool!</div>';
+                    return;
+                }
+
+                visiblePosts.forEach(post => {
+                    const el = document.createElement('div');
+                    el.id = `post-${post.id}`;
+                    el.className = 'post-card rounded-2xl p-6';
+                    const liked = currentUserProfile && post.likers && post.likers.includes(currentUserProfile.uid);
+                    
+                    let optionsMenu = '';
+                    if (post.authorId === currentUserProfile.uid) {
+                        optionsMenu = `<div class="relative"><button class="post-options-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg></button><div class="post-options-dropdown absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-1"><a href="#" class="delete-post-btn block px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" data-post-id="${post.id}">Delete Post</a></div></div>`;
+                    }
+                    
+                    el.innerHTML = ` <div class="flex justify-between items-start"> <div class="flex items-center mb-4"> <img src="${post.authorPfpURL || `https://placehold.co/48x48/fbc2eb/a6c1ee?text=${post.authorName.charAt(0)}`}" class="w-12 h-12 rounded-full object-cover"> <div class="ml-4"> <p class="font-bold">${post.authorName}</p><p class="text-sm text-gray-500 dark:text-gray-400">@${post.authorUsername}</p></div> </div> ${optionsMenu} </div> <p class="mb-4">${post.content || ''}</p> <div class="flex items-center space-x-6 mt-4"> <button class="heart-btn relative flex items-center space-x-2 transition-colors ${liked ? 'text-pink-500' : 'text-gray-400 dark:text-gray-500 hover:text-pink-500'}" data-post-id="${post.id}"><svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg><span class="font-semibold text-sm">${post.likes || 0}</span></button></div>`; 
+                    postFeed.appendChild(el);
+                });
+            });
+        };
+        const createSparkles = (btn) => { /* ... */ };
         const showError = (message) => {
             const loadingSpinner = document.getElementById('loading-spinner');
             const loadingMessage = document.getElementById('loading-message');
