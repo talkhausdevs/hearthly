@@ -124,7 +124,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, onSnapshot, runTransaction, increment, where, updateDoc, arrayUnion, arrayRemove, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, onSnapshot, runTransaction, increment, where, updateDoc, arrayUnion, arrayRemove, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyBBxGKrCB71bpBtyNXFX5zwIhn3PgxhCNs", authDomain: "hearthly-ee439.firebaseapp.com", projectId: "hearthly-ee439", storageBucket: "hearthly-ee439.appspot.com", messagingSenderId: "443591103966", appId: "1:443591103966:web:aac738ab278ed34b1e794f", measurementId: "G-7HPTKEKV4D" };
         const app = initializeApp(firebaseConfig);
@@ -186,16 +186,38 @@
         
         initApp();
         
-        const handlePostCreation = async (e) => { e.preventDefault(); if(!isFirebaseConnected) { alert("Posting is disabled in offline mode."); return; } const content = postContentInput.value.trim(); if (content && currentUserProfile) { try { await addDoc(collection(db, `artifacts/${appId}/public/data/posts`), { postType: 'text', content, authorId: currentUserProfile.uid, authorName: currentUserProfile.fullName, authorUsername: currentUserProfile.username, createdAt: new Date(), likes: 0, likers: [], commentCount: 0 }); postContentInput.value = ''; } catch (error) { console.error("Error creating post: ", error); } } };
+        const handlePostCreation = async (e) => { e.preventDefault(); if(!isFirebaseConnected) { alert("Posting is disabled in offline mode."); return; } const content = postContentInput.value.trim(); if (content && currentUserProfile) { try { await addDoc(collection(db, `artifacts/${appId}/public/data/posts`), { postType: 'text', content, authorId: currentUserProfile.uid, authorName: currentUserProfile.fullName, authorUsername: currentUserProfile.username, createdAt: new Date(), likes: 0, likers: [], commentCount: 0, isArchived: false, visibility: 'public' }); postContentInput.value = ''; } catch (error) { console.error("Error creating post: ", error); } } };
+        
         const handlePostInteraction = (e) => { 
             const profileLink = e.target.closest('a[data-profile-link]');
             const heartBtn = e.target.closest('.heart-btn');
             const commentBtn = e.target.closest('.comment-btn');
-            
+            const optionsBtn = e.target.closest('.post-options-btn');
+            const deleteBtn = e.target.closest('.delete-post-btn');
+            const archiveBtn = e.target.closest('.archive-post-btn');
+            const privacyBtn = e.target.closest('.privacy-post-btn');
+
             if(profileLink) { e.preventDefault(); /* loadProfileIntoModal(profileLink.dataset.profileUid); */ } 
             else if (heartBtn) { if(!isFirebaseConnected) { alert("Liking is disabled in offline mode."); return; } toggleLike(heartBtn.dataset.postId, heartBtn); } 
             else if (commentBtn) { toggleCommentSection(commentBtn.dataset.postId); }
+            else if (deleteBtn) { deletePost(deleteBtn.dataset.postId); }
+            else if (archiveBtn) { archivePost(archiveBtn.dataset.postId); }
+            else if (privacyBtn) { togglePostPrivacy(privacyBtn.dataset.postId, privacyBtn.dataset.visibility); }
         };
+        
+        const deletePost = async (postId) => {
+            if (confirm("Are you sure you want to delete this post?")) {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/posts`, postId));
+            }
+        };
+        const archivePost = async (postId) => {
+            await updateDoc(doc(db, `artifacts/${appId}/public/data/posts`, postId), { isArchived: true });
+        };
+        const togglePostPrivacy = async (postId, currentVisibility) => {
+            const newVisibility = currentVisibility === 'public' ? 'private' : 'public';
+            await updateDoc(doc(db, `artifacts/${appId}/public/data/posts`, postId), { visibility: newVisibility });
+        };
+        
         const handleFormSubmissions = (e) => { if (e.target.matches('.comment-form')) { e.preventDefault(); handleCommentSubmission(e.target); } };
         const toggleLike = async (postId, btn) => { if (!currentUserProfile) return; const postRef = doc(db, `artifacts/${appId}/public/data/posts`, postId); const currentUserId = currentUserProfile.uid; try { await runTransaction(db, async (t) => { const postDoc = await t.get(postRef); if (!postDoc.exists()) throw "E"; const d = postDoc.data(); let l = d.likers || []; let c = d.likes || 0; if (l.includes(currentUserId)) { c--; l = l.filter(uid => uid !== currentUserId); } else { c++; l.push(currentUserId); createSparkles(btn); } t.update(postRef, { likes: c, likers: l }); }); } catch (e) { console.error("Like failed: ", e); } };
         const toggleCommentSection = (postId) => { document.getElementById(`comments-${postId}`)?.classList.toggle('open'); };
@@ -205,18 +227,29 @@
             userGreeting.textContent = profile.fullName; 
             userHandle.textContent = `@${profile.username}`; 
             sidebarAvatar.textContent = profile.fullName.charAt(0); 
-            if(profile.status) { 
-                sidebarStatus.textContent = `${profile.status.emoji} ${profile.status.text}`; 
-            } else { 
-                sidebarStatus.textContent = "Set a status!"; 
-            } 
+            if(profile.status) { sidebarStatus.textContent = `${profile.status.emoji} ${profile.status.text}`; } else { sidebarStatus.textContent = "Set a status!"; } 
         };
-        const listenForPosts = () => { if (!isFirebaseConnected) { postFeed.innerHTML = '<div class="text-center p-8">Offline Mode: Cannot load posts.</div>'; return; } if (unsubscribePosts) unsubscribePosts(); const q = query(collection(db, `artifacts/${appId}/public/data/posts`)); unsubscribePosts = onSnapshot(q, (snapshot) => { postFeed.innerHTML = ''; if (snapshot.empty) { postFeed.innerHTML = '<div class="text-center p-8">No posts yet. Say something cool!</div>'; return; } const posts = []; snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() })); posts.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate()); posts.forEach(post => { const el = document.createElement('div'); el.id = `post-${post.id}`; el.className = 'post-card rounded-2xl p-6'; const liked = currentUserProfile && post.likers && post.likers.includes(currentUserProfile.uid); 
-        
-        let postContentHtml = `<p class="mb-4">${post.content || ''}</p>`;
-        
-        el.innerHTML = ` <div class="flex items-center mb-4"> <a href="#" data-profile-link data-profile-uid="${post.authorId}" class="w-12 h-12 bg-gradient-to-br from-pink-300 to-blue-300 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-white text-xl">${post.authorName.charAt(0)}</a> <div class="ml-4"> <a href="#" data-profile-link data-profile-uid="${post.authorId}" class="hover:underline"><p class="font-bold">${post.authorName}</p><p class="text-sm text-gray-500 dark:text-gray-400">@${post.authorUsername}</p></a></div> </div> ${postContentHtml} <div class="flex items-center space-x-6 mt-4"> <button class="heart-btn relative flex items-center space-x-2 transition-colors ${liked ? 'text-pink-500' : 'text-gray-400 dark:text-gray-500 hover:text-pink-500'}" data-post-id="${post.id}"><svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg><span class="font-semibold text-sm">${post.likes || 0}</span></button> <button class="comment-btn flex items-center space-x-2 text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors" data-post-id="${post.id}"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg><span class="font-semibold text-sm">${post.commentCount || 0}</span></button> </div> <div id="comments-${post.id}" class="comment-section border-t border-gray-200 dark:border-white/10"><form class="comment-form flex items-center space-x-3 pt-4" data-post-id="${post.id}"><input type="text" placeholder="Add a vibe..." class="w-full bg-gray-100 dark:bg-white/5 border-none rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-pink-400 transition-shadow"><button type="submit" class="bg-gradient-to-r from-blue-400 to-indigo-500 text-white font-semibold px-4 py-2 rounded-full hover:opacity-90 transition-opacity">Reply</button></form><ul class="comment-list space-y-4 mt-4"></ul></div>`; postFeed.appendChild(el); listenForComments(post.id, el.querySelector('.comment-section')); }); }); };
-        const listenForComments = (postId, container) => { const q = query(collection(db, `artifacts/${appId}/public/data/posts/${postId}/comments`)); onSnapshot(q, (snapshot) => { const list = container.querySelector('.comment-list'); if (!list) return; list.innerHTML = ''; if (snapshot.empty) { list.innerHTML = '<p class="text-xs text-center text-gray-500 dark:text-gray-400 py-2">be the first to reply ✨</p>'; return; } const comments = []; snapshot.forEach(doc => comments.push(doc.data())); comments.sort((a,b) => a.createdAt.toDate() - b.createdAt.toDate()); comments.forEach(comment => { const li = document.createElement('li'); li.className = 'flex items-start space-x-3'; li.innerHTML = `<a href="#" data-profile-link data-profile-uid="${comment.authorId}" class="w-9 h-9 bg-gradient-to-br from-green-300 to-purple-300 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-white text-sm">${comment.authorName.charAt(0)}</a><div class="flex-1"><div class="bg-gray-100 dark:bg-white/10 p-3 rounded-xl rounded-tl-none"><a href="#" data-profile-link data-profile-uid="${comment.authorId}"><p class="font-semibold text-sm">${comment.authorName}</p></a><p class="text-sm">${comment.text}</p></div></div>`; list.appendChild(li); }); }); };
+        const listenForPosts = () => { if (!isFirebaseConnected) { postFeed.innerHTML = '<div class="text-center p-8">Offline Mode: Cannot load posts.</div>'; return; } if (unsubscribePosts) unsubscribePosts(); 
+            const q = query(collection(db, `artifacts/${appId}/public/data/posts`), where("isArchived", "==", false), where("visibility", "==", "public"));
+            unsubscribePosts = onSnapshot(q, (snapshot) => { postFeed.innerHTML = ''; if (snapshot.empty) { postFeed.innerHTML = '<div class="text-center p-8">No posts yet. Say something cool!</div>'; return; } const posts = []; snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() })); posts.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate()); posts.forEach(post => { const el = document.createElement('div'); el.id = `post-${post.id}`; el.className = 'post-card rounded-2xl p-6'; const liked = currentUserProfile && post.likers && post.likers.includes(currentUserProfile.uid); 
+            
+            let optionsMenu = '';
+            if (post.authorId === currentUserProfile.uid) {
+                optionsMenu = `
+                    <div class="relative">
+                        <button class="post-options-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+                        </button>
+                        <div class="post-options-dropdown absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-1">
+                            <a href="#" class="privacy-post-btn block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" data-post-id="${post.id}" data-visibility="${post.visibility}">${post.visibility === 'public' ? 'Make Private' : 'Make Public'}</a>
+                            <a href="#" class="archive-post-btn block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" data-post-id="${post.id}">Archive</a>
+                            <a href="#" class="delete-post-btn block px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" data-post-id="${post.id}">Delete</a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            el.innerHTML = ` <div class="flex justify-between items-start"> <div class="flex items-center mb-4"> <a href="#" data-profile-link data-profile-uid="${post.authorId}" class="w-12 h-12 bg-gradient-to-br from-pink-300 to-blue-300 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-white text-xl">${post.authorName.charAt(0)}</a> <div class="ml-4"> <a href="#" data-profile-link data-profile-uid="${post.authorId}" class="hover:underline"><p class="font-bold">${post.authorName}</p><p class="text-sm text-gray-500 dark:text-gray-400">@${post.authorUsername}</p></a></div> </div> ${optionsMenu} </div> <p class="mb-4">${post.content || ''}</p> <div class="flex items-center space-x-6 mt-4"> <button class="heart-btn relative flex items-center space-x-2 transition-colors ${liked ? 'text-pink-500' : 'text-gray-400 dark:text-gray-500 hover:text-pink-500'}" data-post-id="${post.id}"><svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg><span class="font-semibold text-sm">${post.likes || 0}</span></button> <button class="comment-btn flex items-center space-x-2 text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors" data-post-id="${post.id}"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg><span class="font-semibold text-sm">${post.commentCount || 0}</span></button> </div> <div id="comments-${post.id}" class="comment-section border-t border-gray-200 dark:border-white/10"><form class="comment-form flex items-center space-x-3 pt-4" data-post-id="${post.id}"><input type="text" placeholder="Add a vibe..." class="w-full bg-gray-100 dark:bg-white/5 border-none rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-pink-400 transition-shadow"><button type="submit" class="bg-gradient-to-r from-blue-400 to-indigo-500 text-white font-semibold px-4 py-2 rounded-full hover:opacity-90 transition-opacity">Reply</button></form><ul class="comment-list space-y-4 mt-4"></ul></div>`; postFeed.appendChild(el); }); }); };
         const createSparkles = (btn) => { for(let i = 0; i < 5; i++) { const sparkle = document.createElement('div'); sparkle.className = 'sparkle'; sparkle.style.left = `${Math.random() * 100 - 50}%`; sparkle.style.top = `${Math.random() * 100 - 50}%`; btn.appendChild(sparkle); setTimeout(() => sparkle.remove(), 500); } };
         const showError = (message) => {
             const loadingSpinner = document.getElementById('loading-spinner');
