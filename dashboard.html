@@ -13,6 +13,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
+    <!-- Tone.js for audio generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    
     <style>
         :root {
             --bg-light: #FFFBF5;
@@ -95,7 +98,6 @@
 </head>
 <body class="antialiased">
 
-    <!-- App Container -->
     <div id="app-container" class="min-h-screen hidden">
         <!-- Sticky Header -->
         <header class="bg-white/80 dark:bg-black/50 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200 dark:border-white/10">
@@ -175,8 +177,8 @@
             createPostForm.addEventListener('submit', handlePostCreation);
             postFeed.addEventListener('click', handlePostInteraction);
             document.body.addEventListener('submit', handleFormSubmissions);
-            profileLink.addEventListener('click', (e) => { e.preventDefault(); loadProfileIntoModal(currentUserProfile.uid); });
-            editStatusBtn.addEventListener('click', showStatusModal);
+            profileLink.addEventListener('click', (e) => { e.preventDefault(); /* loadProfileIntoModal(currentUserProfile.uid); */ });
+            editStatusBtn.addEventListener('click', () => { /* showStatusModal(); */ });
             dmBtn.addEventListener('click', () => window.location.assign('dms.html'));
             hearthsBtn.addEventListener('click', () => window.location.assign('hearths.html'));
             document.getElementById('logout-button').addEventListener('click', () => signOut(auth));
@@ -184,48 +186,21 @@
         
         initApp();
         
-        // --- Full Modal Logic ---
-        const injectModalHTML = () => { /* ... */ };
-        const showModal = (overlay) => { /* ... */ };
-        const hideModal = (overlay) => { /* ... */ };
-        const loadProfileIntoModal = async (userId) => { /* ... */ };
-        const showStatusModal = () => { /* ... */ };
-        const handleStatusUpdate = async (e) => { /* ... */ };
-        const showEditProfileModal = () => { /* ... */ };
-        const handleProfileUpdate = async (e) => { /* ... */ };
-        const showDmModal = () => { /* ... */ };
-        const hideDmModal = () => { /* ... */ };
-        const showHearthsModal = () => { /* ... */ };
-        const hideHearthsModal = () => { /* ... */ };
-        const showCreateHearthModal = () => { /* ... */ };
-        const hideCreateHearthModal = () => { /* ... */ };
-        const handleCreateHearth = async (e) => { /* ... */ };
-
-        // --- Core Functions ---
         const handlePostCreation = async (e) => { e.preventDefault(); if(!isFirebaseConnected) { alert("Posting is disabled in offline mode."); return; } const content = postContentInput.value.trim(); if (content && currentUserProfile) { try { await addDoc(collection(db, `artifacts/${appId}/public/data/posts`), { postType: 'text', content, authorId: currentUserProfile.uid, authorName: currentUserProfile.fullName, authorUsername: currentUserProfile.username, createdAt: new Date(), likes: 0, likers: [], commentCount: 0 }); postContentInput.value = ''; } catch (error) { console.error("Error creating post: ", error); } } };
-        
         const handlePostInteraction = (e) => { 
             const profileLink = e.target.closest('a[data-profile-link]');
             const heartBtn = e.target.closest('.heart-btn');
             const commentBtn = e.target.closest('.comment-btn');
             
-            if(profileLink) { e.preventDefault(); loadProfileIntoModal(profileLink.dataset.profileUid); } 
+            if(profileLink) { e.preventDefault(); /* loadProfileIntoModal(profileLink.dataset.profileUid); */ } 
             else if (heartBtn) { if(!isFirebaseConnected) { alert("Liking is disabled in offline mode."); return; } toggleLike(heartBtn.dataset.postId, heartBtn); } 
             else if (commentBtn) { toggleCommentSection(commentBtn.dataset.postId); }
         };
-        
-        const handleFormSubmissions = (e) => {
-            if (e.target.matches('.comment-form')) {
-                e.preventDefault();
-                handleCommentSubmission(e.target);
-            }
-        };
-        
+        const handleFormSubmissions = (e) => { if (e.target.matches('.comment-form')) { e.preventDefault(); handleCommentSubmission(e.target); } };
         const toggleLike = async (postId, btn) => { if (!currentUserProfile) return; const postRef = doc(db, `artifacts/${appId}/public/data/posts`, postId); const currentUserId = currentUserProfile.uid; try { await runTransaction(db, async (t) => { const postDoc = await t.get(postRef); if (!postDoc.exists()) throw "E"; const d = postDoc.data(); let l = d.likers || []; let c = d.likes || 0; if (l.includes(currentUserId)) { c--; l = l.filter(uid => uid !== currentUserId); } else { c++; l.push(currentUserId); createSparkles(btn); } t.update(postRef, { likes: c, likers: l }); }); } catch (e) { console.error("Like failed: ", e); } };
         const toggleCommentSection = (postId) => { document.getElementById(`comments-${postId}`)?.classList.toggle('open'); };
         const handleCommentSubmission = async (form) => { if(!isFirebaseConnected) { alert("Commenting is disabled in offline mode."); return; } const postId = form.dataset.postId; const input = form.querySelector('input'); const text = input.value.trim(); if (!text) return; const postRef = doc(db, `artifacts/${appId}/public/data/posts`, postId); const commentsRef = collection(postRef, "comments"); try { await addDoc(commentsRef, { text, authorId: currentUserProfile.uid, authorName: currentUserProfile.fullName, authorUsername: currentUserProfile.username, createdAt: new Date() }); await updateDoc(postRef, { commentCount: increment(1) }); input.value = ''; } catch(e) { console.error("Error adding comment: ", e); } };
         
-        // --- UI Rendering ---
         const displayUserData = (profile) => { 
             userGreeting.textContent = profile.fullName; 
             userHandle.textContent = `@${profile.username}`; 
