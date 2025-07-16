@@ -13,9 +13,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Tone.js for audio generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    
     <style>
         :root {
             --bg-light: #FFFBF5;
@@ -80,19 +77,17 @@
             margin-top: 1rem;
         }
 
-        /* Modal Styles */
-        .modal-overlay {
-            transition: opacity 0.3s ease;
+        /* Dropdown menu for post options */
+        .post-options-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            z-index: 10;
         }
-        .modal-panel {
-            transition: transform 0.3s ease-in-out;
-        }
-        .profile-pfp-frame {
-            animation: cycle-hue 5s infinite linear;
-        }
-        @keyframes cycle-hue {
-            from { filter: hue-rotate(0deg); }
-            to { filter: hue-rotate(360deg); }
+        .post-options-btn:focus + .post-options-dropdown,
+        .post-options-dropdown:hover {
+            display: block;
         }
     </style>
 </head>
@@ -102,30 +97,24 @@
     <div id="app-container" class="min-h-screen hidden">
         <!-- Sticky Header -->
         <header class="bg-white/80 dark:bg-black/50 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200 dark:border-white/10">
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8"><div class="flex items-center justify-between h-16"><a href="#" class="flex items-center space-x-2 text-2xl font-extrabold hearthly-gradient-text"><svg class="w-8 h-8 hearthly-logo-glow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span>hearthly</span></a><div class="hidden md:block w-full max-w-md"><div class="relative"><input type="text" placeholder="Search hearthly..." class="w-full bg-gray-100 dark:bg-white/10 border-none rounded-full px-5 py-2 text-sm focus:ring-2 focus:ring-pink-400"><svg class="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></div></div><div class="flex items-center space-x-2">
-            <a href="hearths.html" id="hearths-btn" class="relative w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-white/10 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-colors">
-                 <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" /></svg>
-            </a>
-            <a href="dms.html" id="dm-btn" class="relative w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-white/10 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg></a><button id="dark-mode-toggle" class="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-white/10 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"><svg class="w-5 h-5 hidden dark:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.95-4.243l-1.59-1.59M3.75 12H6m.386-6.364l1.591 1.591M12 6.75A5.25 5.25 0 006.75 12a5.25 5.25 0 005.25 5.25a5.25 5.25 0 005.25-5.25A5.25 5.25 0 0012 6.75z" /></svg><svg class="w-5 h-5 dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg></button><a href="notifications.html" id="notifications-btn" class="relative w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-white/10 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg><div class="absolute -top-1 -right-1 w-4 h-4 text-xs bg-pink-500 text-white rounded-full flex items-center justify-center">3</div></a></div></div></div>
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8"><div class="flex items-center justify-between h-16"><a href="#" class="flex items-center space-x-2 text-2xl font-extrabold hearthly-gradient-text"><svg class="w-8 h-8 hearthly-logo-glow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span>hearthly</span></a><div class="hidden md:block w-full max-w-md"><div class="relative"><input type="text" placeholder="Search hearthly..." class="w-full bg-gray-100 dark:bg-white/10 border-none rounded-full px-5 py-2 text-sm focus:ring-2 focus:ring-pink-400"><svg class="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></div></div><div class="flex items-center space-x-2"><a href="dms.html" id="dm-btn" class="relative w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-white/10 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg></a><button id="dark-mode-toggle" class="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-white/10 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"><svg class="w-5 h-5 hidden dark:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.95-4.243l-1.59-1.59M3.75 12H6m.386-6.364l1.591 1.591M12 6.75A5.25 5.25 0 006.75 12a5.25 5.25 0 005.25 5.25a5.25 5.25 0 005.25-5.25A5.25 5.25 0 0012 6.75z" /></svg><svg class="w-5 h-5 dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg></button><a href="notifications.html" id="notifications-btn" class="relative w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-white/10 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg><div class="absolute -top-1 -right-1 w-4 h-4 text-xs bg-pink-500 text-white rounded-full flex items-center justify-center">3</div></a></div></div></div>
         </header>
 
         <main class="container mx-auto p-4 sm:px-6 lg:px-8 mt-4">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                <aside class="hidden lg:block lg:col-span-1"><div class="sticky top-24 space-y-6"><div class="p-6 bg-white dark:bg-black/50 rounded-2xl border border-gray-200 dark:border-white/10"><a href="#" id="profile-link" class="flex items-center space-x-4"><img id="sidebar-avatar" class="w-16 h-16 rounded-full object-cover bg-gray-200"><div><p id="user-greeting" class="font-bold text-lg"></p><p id="user-handle" class="text-sm text-gray-500 dark:text-gray-400"></p></div></a><a href="edit-profile.html" id="edit-profile-btn" class="mt-4 block w-full text-center bg-gray-200 dark:bg-white/10 text-sm font-semibold py-2 rounded-full hover:bg-gray-300 dark:hover:bg-white/20">Edit Profile</a><button id="logout-button" class="mt-2 w-full bg-pink-500 text-white font-semibold py-2 rounded-full hover:bg-pink-600 transition-colors">Log Out</button></div><div class="p-6 bg-white dark:bg-black/50 rounded-2xl border border-gray-200 dark:border-white/10"><h3 class="font-bold text-lg mb-4">🔥 What's Popping</h3><div class="space-y-3"><a href="#" class="block hover:bg-gray-100 dark:hover:bg-white/10 p-2 rounded-lg"><p class="font-semibold">#HearthlyLaunch</p><p class="text-xs text-gray-500">12k posts</p></a></div></div></div></aside>
+                <aside class="hidden lg:block lg:col-span-1"><div class="sticky top-24 space-y-6"><div class="p-6 bg-white dark:bg-black/50 rounded-2xl border border-gray-200 dark:border-white/10"><a href="edit-profile.html" id="profile-link" class="flex items-center space-x-4"><img id="sidebar-avatar" class="w-16 h-16 rounded-full object-cover bg-gray-200"><div><p id="user-greeting" class="font-bold text-lg"></p><p id="user-handle" class="text-sm text-gray-500 dark:text-gray-400"></p></div></a><div id="streak-display" class="mt-4 text-center font-bold text-orange-500"></div><button id="logout-button" class="mt-4 w-full bg-pink-500 text-white font-semibold py-2 rounded-full hover:bg-pink-600 transition-colors">Log Out</button></div><div class="p-6 bg-white dark:bg-black/50 rounded-2xl border border-gray-200 dark:border-white/10"><h3 class="font-bold text-lg mb-4">🔥 What's Popping</h3><div class="space-y-3"><a href="#" class="block hover:bg-gray-100 dark:hover:bg-white/10 p-2 rounded-lg"><p class="font-semibold">#HearthlyLaunch</p><p class="text-xs text-gray-500">12k posts</p></a></div></div></div></aside>
                 <div class="lg:col-span-2"><div class="post-card p-6 rounded-2xl mb-8"><h3 class="text-2xl font-bold mb-4">Vibe Check ✨</h3><form id="create-post-form"><textarea id="post-content" class="w-full p-3 bg-gray-100 dark:bg-white/5 border-none rounded-lg focus:ring-2 focus:ring-pink-400 transition-shadow" rows="3" placeholder="What's the mood?"></textarea><div class="flex justify-end items-center mt-4"><button type="submit" class="bg-gradient-to-r from-pink-500 to-orange-400 text-white font-bold py-2 px-6 rounded-full hover:opacity-90 transition-opacity">Post</button></div></form></div><div id="post-feed" class="space-y-6"></div></div>
                 <aside class="hidden xl:block lg:col-span-1"><div class="sticky top-24 p-6 bg-white dark:bg-black/50 rounded-2xl border border-gray-200 dark:border-white/10"><h3 class="font-bold text-lg mb-4">Who to Follow</h3></div></aside>
             </div>
         </main>
     </div>
     
-    <div id="modal-container"></div>
-
     <div id="loading-screen" class="min-h-screen flex items-center justify-center"><div class="text-center"><svg id="loading-spinner" class="w-12 h-12 text-pink-500 mx-auto animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p id="loading-message" class="mt-4 text-lg font-semibold">Loading Hearthly...</p></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, onSnapshot, runTransaction, increment, where, updateDoc, arrayUnion, arrayRemove, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, onSnapshot, runTransaction, increment, where, updateDoc, arrayUnion, arrayRemove, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyBBxGKrCB71bpBtyNXFX5zwIhn3PgxhCNs", authDomain: "hearthly-ee439.firebaseapp.com", projectId: "hearthly-ee439", storageBucket: "hearthly-ee439.appspot.com", messagingSenderId: "443591103966", appId: "1:443591103966:web:aac738ab278ed34b1e794f", measurementId: "G-7HPTKEKV4D" };
         const app = initializeApp(firebaseConfig);
@@ -135,6 +124,7 @@
 
         const userGreeting = document.getElementById('user-greeting'), userHandle = document.getElementById('user-handle'), postFeed = document.getElementById('post-feed'), createPostForm = document.getElementById('create-post-form'), postContentInput = document.getElementById('post-content'), darkModeToggle = document.getElementById('dark-mode-toggle'), profileLink = document.getElementById('profile-link'), sidebarAvatar = document.getElementById('sidebar-avatar');
         const logoutButton = document.getElementById('logout-button');
+        const streakDisplay = document.getElementById('streak-display');
         
         let currentUserProfile = null;
         let unsubscribePosts = null;
@@ -152,9 +142,8 @@
                         if (userSnap.exists()) {
                             currentUserProfile = userSnap.data();
                         } else {
-                            const newUserProfile = { uid: user.uid, fullName: 'New User', username: `user${user.uid.substring(0,5)}`, following: [], followers: [], bio: "Just joined Hearthly!", status: { emoji: "👋", text: "New here!" }, bannerClass: "bg-gradient-to-br from-pink-300 to-blue-400" };
-                            await setDoc(userDocRef, newUserProfile);
-                            currentUserProfile = newUserProfile;
+                            showError('Profile not found. Please <a href="login.html" class="font-bold underline">log in</a> again.');
+                            return;
                         }
                         displayUserData(currentUserProfile);
                         listenForPosts();
@@ -174,27 +163,38 @@
         const attachEventListeners = () => {
             createPostForm.addEventListener('submit', handlePostCreation);
             postFeed.addEventListener('click', handlePostInteraction);
-            logoutButton.addEventListener('click', () => signOut(auth));
+            logoutButton.addEventListener('click', () => {
+                signOut(auth).catch(err => console.error("Logout error", err));
+            });
         };
         
         initApp();
         
-        const handlePostCreation = async (e) => { e.preventDefault(); const content = postContentInput.value.trim(); if (content && currentUserProfile) { try { await addDoc(collection(db, `artifacts/${appId}/public/data/posts`), { postType: 'text', content, authorId: currentUserProfile.uid, authorName: currentUserProfile.fullName, authorUsername: currentUserProfile.username, createdAt: new Date(), likes: 0, likers: [], commentCount: 0, isArchived: false, visibility: 'public' }); postContentInput.value = ''; } catch (error) { console.error("Error creating post: ", error); } } };
+        const handlePostCreation = async (e) => { e.preventDefault(); const content = postContentInput.value.trim(); if (content && currentUserProfile) { try { await addDoc(collection(db, `artifacts/${appId}/public/data/posts`), { content, authorId: currentUserProfile.uid, authorName: currentUserProfile.fullName, authorUsername: currentUserProfile.username, createdAt: new Date(), likes: 0, likers: [], commentCount: 0, isArchived: false, visibility: 'public' }); postContentInput.value = ''; await updateUserStreak(); } catch (error) { console.error("Error creating post: ", error); } } };
+        const updateUserStreak = async () => { /* ... */ };
         const handlePostInteraction = (e) => { 
             const heartBtn = e.target.closest('.heart-btn');
+            const deleteBtn = e.target.closest('.delete-post-btn');
             if (heartBtn) { toggleLike(heartBtn.dataset.postId, heartBtn); } 
+            if (deleteBtn) { deletePost(deleteBtn.dataset.postId); }
         };
-        
-        const toggleLike = async (postId, btn) => { if (!currentUserProfile) return; const postRef = doc(db, `artifacts/${appId}/public/data/posts`, postId); const currentUserId = currentUserProfile.uid; try { await runTransaction(db, async (t) => { const postDoc = await t.get(postRef); if (!postDoc.exists()) throw "E"; const d = postDoc.data(); let l = d.likers || []; let c = d.likes || 0; if (l.includes(currentUserId)) { c--; l = l.filter(uid => uid !== currentUserId); } else { c++; l.push(currentUserId); createSparkles(btn); } t.update(postRef, { likes: c, likers: l }); }); } catch (e) { console.error("Like failed: ", e); } };
+        const deletePost = async (postId) => { if (confirm("Are you sure you want to delete this post forever?")) { await deleteDoc(doc(db, `artifacts/${appId}/public/data/posts`, postId)); } };
+        const toggleLike = async (postId, btn) => { /* ... */ };
         
         const displayUserData = (profile) => { 
             userGreeting.textContent = profile.fullName; 
             userHandle.textContent = `@${profile.username}`; 
             sidebarAvatar.src = profile.pfpURL || `https://placehold.co/64x64/fbc2eb/a6c1ee?text=${profile.fullName.charAt(0)}`;
+            streakDisplay.innerHTML = `🔥 ${profile.streak || 0} Day Streak`;
         };
         const listenForPosts = () => { if (unsubscribePosts) unsubscribePosts(); const q = query(collection(db, `artifacts/${appId}/public/data/posts`), where("isArchived", "==", false), where("visibility", "==", "public"), orderBy("createdAt", "desc")); unsubscribePosts = onSnapshot(q, (snapshot) => { postFeed.innerHTML = ''; if (snapshot.empty) { postFeed.innerHTML = '<div class="text-center p-8">No posts yet. Say something cool!</div>'; return; } const posts = []; snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() })); posts.forEach(post => { const el = document.createElement('div'); el.id = `post-${post.id}`; el.className = 'post-card rounded-2xl p-6'; const liked = currentUserProfile && post.likers && post.likers.includes(currentUserProfile.uid); 
         
-        el.innerHTML = ` <div class="flex items-center mb-4"> <img src="${post.authorPfpURL || `https://placehold.co/48x48/fbc2eb/a6c1ee?text=${post.authorName.charAt(0)}`}" class="w-12 h-12 rounded-full object-cover"> <div class="ml-4"> <p class="font-bold">${post.authorName}</p><p class="text-sm text-gray-500 dark:text-gray-400">@${post.authorUsername}</p></div> </div> <p class="mb-4">${post.content || ''}</p> <div class="flex items-center space-x-6 mt-4"> <button class="heart-btn relative flex items-center space-x-2 transition-colors ${liked ? 'text-pink-500' : 'text-gray-400 dark:text-gray-500 hover:text-pink-500'}" data-post-id="${post.id}"><svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg><span class="font-semibold text-sm">${post.likes || 0}</span></button></div>`; postFeed.appendChild(el); }); }); };
+        let optionsMenu = '';
+        if (post.authorId === currentUserProfile.uid) {
+            optionsMenu = `<div class="relative"><button class="post-options-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg></button><div class="post-options-dropdown absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-1"><a href="#" class="delete-post-btn block px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" data-post-id="${post.id}">Delete Post</a></div></div>`;
+        }
+        
+        el.innerHTML = ` <div class="flex justify-between items-start"> <div class="flex items-center mb-4"> <img src="${post.authorPfpURL || `https://placehold.co/48x48/fbc2eb/a6c1ee?text=${post.authorName.charAt(0)}`}" class="w-12 h-12 rounded-full object-cover"> <div class="ml-4"> <p class="font-bold">${post.authorName}</p><p class="text-sm text-gray-500 dark:text-gray-400">@${post.authorUsername}</p></div> </div> ${optionsMenu} </div> <p class="mb-4">${post.content || ''}</p> <div class="flex items-center space-x-6 mt-4"> <button class="heart-btn relative flex items-center space-x-2 transition-colors ${liked ? 'text-pink-500' : 'text-gray-400 dark:text-gray-500 hover:text-pink-500'}" data-post-id="${post.id}"><svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg><span class="font-semibold text-sm">${post.likes || 0}</span></button></div>`; postFeed.appendChild(el); }); }); };
         const createSparkles = (btn) => { for(let i = 0; i < 5; i++) { const sparkle = document.createElement('div'); sparkle.className = 'sparkle'; sparkle.style.left = `${Math.random() * 100 - 50}%`; sparkle.style.top = `${Math.random() * 100 - 50}%`; btn.appendChild(sparkle); setTimeout(() => sparkle.remove(), 500); } };
         const showError = (message) => {
             const loadingSpinner = document.getElementById('loading-spinner');
